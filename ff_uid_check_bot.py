@@ -3,7 +3,6 @@ import aiohttp
 import logging
 import asyncio
 from datetime import datetime
-
 from aiogram import Bot, Dispatcher, types
 from aiogram.utils import executor
 
@@ -87,7 +86,6 @@ async def check_uid_info(message: types.Message):
 <b>Time Active:</b> {s.get("timeActive", "N/A").replace("TimeActive_", "")}
 <b>Signature:</b> {s.get("signature", "N/A").replace("[b][c][i]", "").strip()}
 """
-
         await wait_msg.edit_text(text)
 
     except Exception as e:
