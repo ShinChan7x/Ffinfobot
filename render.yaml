@@ -6,6 +6,7 @@ services:
     branch: main
     buildCommand: "pip install -r requirements.txt"
     startCommand: "python ff_uid_check_bot.py"
+    pythonVersion: 3.10
     envVars:
       - key: TELEGRAM_BOT_TOKEN
         sync: false
