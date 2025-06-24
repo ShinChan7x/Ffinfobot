@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: ff-uid-check-bot
+    env: python
+    plan: free
+    branch: main
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python ff_uid_check_bot.py"
+    envVars:
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: ALLOWED_GROUP_ID
+        sync: false
