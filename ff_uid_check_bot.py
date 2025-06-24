@@ -1,20 +1,17 @@
-
-import asyncio
-import logging
-import aiohttp
-from datetime import datetime
-from aiogram import Bot, Dispatcher
-from aiogram.enums import ParseMode, ChatType
-from aiogram.types import Message
-from aiogram.filters import Command
-from aiogram.client.default import DefaultBotProperties
 import os
+import aiohttp
+import logging
+import asyncio
+from datetime import datetime
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
+from aiogram import Bot, Dispatcher, types
+from aiogram.utils import executor
+
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 ALLOWED_GROUP_ID = int(os.getenv("ALLOWED_GROUP_ID", "-1000000000000"))
 
-bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-dp = Dispatcher()
+bot = Bot(token=BOT_TOKEN, parse_mode="HTML")
+dp = Dispatcher(bot)
 
 def unix_to_readable(timestamp):
     try:
@@ -22,9 +19,9 @@ def unix_to_readable(timestamp):
     except:
         return "N/A"
 
-@dp.message(Command("check"))
-async def check_uid_info(message: Message):
-    if message.chat.type not in [ChatType.GROUP, ChatType.SUPERGROUP]:
+@dp.message_handler(commands=["check"])
+async def check_uid_info(message: types.Message):
+    if message.chat.type not in ["group", "supergroup"]:
         return
     if message.chat.id != ALLOWED_GROUP_ID:
         return
@@ -57,48 +54,45 @@ async def check_uid_info(message: Message):
         s = data.get("socialInfo", {})
 
         text = f"""{user_tag}
-Player Profile
-Name: {b.get("nickname", "N/A")}
-UID: {b.get("accountId", "N/A")}
-Region: {b.get("region", "N/A")}
-Level: {b.get("level", "N/A")}
-EXP: {b.get("exp", 0):,}
-Likes: {b.get("liked", "N/A")}
-Created At: {unix_to_readable(b.get("createAt", 0))}
-Last Login: {unix_to_readable(b.get("lastLoginAt", 0))}
+<b>👤 Player Profile</b>
+<b>Name:</b> {b.get("nickname", "N/A")}
+<b>UID:</b> {b.get("accountId", "N/A")}
+<b>Region:</b> {b.get("region", "N/A")}
+<b>Level:</b> {b.get("level", "N/A")}
+<b>EXP:</b> {b.get("exp", 0):,}
+<b>Likes:</b> {b.get("liked", "N/A")}
+<b>Created At:</b> {unix_to_readable(b.get("createAt", 0))}
+<b>Last Login:</b> {unix_to_readable(b.get("lastLoginAt", 0))}
 
-Elite & Stats
-Elite Pass: {"Yes" if b.get("hasElitePass") else "No"}
-Badges: {b.get("badgeCnt", 0)}
+<b>🔥 Elite & Stats</b>
+<b>Elite Pass:</b> {"Yes" if b.get("hasElitePass") else "No"}
+<b>Badges:</b> {b.get("badgeCnt", 0)}
 
-Guild Info
-Name: {c.get("clanName", "N/A")}
-Leader ID: {c.get("captainId", "N/A")}
-Members: {c.get("memberNum", 0)} / {c.get("capacity", 0)}
-Level: {c.get("clanLevel", "N/A")}
+<b>🏳️ Guild Info</b>
+<b>Name:</b> {c.get("clanName", "N/A")}
+<b>Leader ID:</b> {c.get("captainId", "N/A")}
+<b>Members:</b> {c.get("memberNum", 0)} / {c.get("capacity", 0)}
+<b>Level:</b> {c.get("clanLevel", "N/A")}
 
-Pet Info
-Name: {p.get("name", "N/A")}
-Level: {p.get("level", "N/A")}
-Skin ID: {p.get("skinId", "N/A")}
-Skill ID: {p.get("selectedSkillId", "N/A")}
+<b>🐾 Pet Info</b>
+<b>Name:</b> {p.get("name", "N/A")}
+<b>Level:</b> {p.get("level", "N/A")}
+<b>Skin ID:</b> {p.get("skinId", "N/A")}
+<b>Skill ID:</b> {p.get("selectedSkillId", "N/A")}
 
-Social Info
-Gender: {s.get("gender", "N/A").replace("Gender_", "")}
-Language: {s.get("language", "N/A").replace("Language_", "")}
-Time Online: {s.get("timeOnline", "N/A").replace("TimeOnline_", "")}
-Time Active: {s.get("timeActive", "N/A").replace("TimeActive_", "")}
-Signature: {s.get("signature", "N/A").replace("[b][c][i]", "").strip()}
+<b>🌐 Social Info</b>
+<b>Gender:</b> {s.get("gender", "N/A").replace("Gender_", "")}
+<b>Language:</b> {s.get("language", "N/A").replace("Language_", "")}
+<b>Time Online:</b> {s.get("timeOnline", "N/A").replace("TimeOnline_", "")}
+<b>Time Active:</b> {s.get("timeActive", "N/A").replace("TimeActive_", "")}
+<b>Signature:</b> {s.get("signature", "N/A").replace("[b][c][i]", "").strip()}
 """
+
         await wait_msg.edit_text(text)
 
     except Exception as e:
-        await wait_msg.edit_text(f"Error fetching info.\n{e}")
+        await wait_msg.edit_text(f"❌ Error fetching info.\n<code>{e}</code>")
 
-async def main():
+if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    print("Bot is running...")
-    await dp.start_polling(bot)
-
-if __name__ == "__main__":
-    asyncio.run(main())
+    executor.start_polling(dp, skip_updates=True)
