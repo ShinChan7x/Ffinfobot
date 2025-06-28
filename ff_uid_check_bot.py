@@ -6,8 +6,8 @@ from datetime import datetime
 from aiogram import Bot, Dispatcher, types
 from aiogram.utils import executor
 
-BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-ALLOWED_GROUP_ID = int(os.getenv("ALLOWED_GROUP_ID", "-1000000000000"))
+BOT_TOKEN = os.getenv("7592894356:AAHMklcnPTSOz6Ay0l7Gps4W-yIfou_EafU")
+ALLOWED_GROUP_ID = int(os.getenv("ALLOWED_GROUP_ID", "-1002881479162"))
 
 bot = Bot(token=BOT_TOKEN, parse_mode="HTML")
 dp = Dispatcher(bot)
