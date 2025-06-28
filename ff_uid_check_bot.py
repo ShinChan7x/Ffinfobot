@@ -1,20 +1,19 @@
-import os
-import aiohttp
+ import aiohttp
 import logging
-import asyncio
 from datetime import datetime
 from aiogram import Bot, Dispatcher, types
 from aiogram.utils import executor
 
-BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-ALLOWED_GROUP_ID = int(os.getenv("ALLOWED_GROUP_ID", "-1000000000000"))
+# ✅ Token ও Group ID সরাসরি কোডে সেট করা হয়েছে
+BOT_TOKEN = "7592894356:AAHMklcnPTSOz6Ay0l7Gps4W-yIfou_EafU"
+ALLOWED_GROUP_ID = -1002881479162
 
 bot = Bot(token=BOT_TOKEN, parse_mode="HTML")
 dp = Dispatcher(bot)
 
-def unix_to_readable(timestamp):
+def unix_to_readable(ts):
     try:
-        return datetime.fromtimestamp(int(timestamp)).strftime("%d-%m-%Y %H:%M:%S")
+        return datetime.fromtimestamp(int(ts)).strftime("%d-%m-%Y %H:%M:%S")
     except:
         return "N/A"
 
@@ -34,57 +33,60 @@ async def check_uid_info(message: types.Message):
             break
 
     if len(args) != 3:
-        await message.reply("Usage: /check sg 8431487083 #user_id")
+        await message.reply("Usage: /check bd 7842525752 #user_id")
         return
 
     region, uid = args[1], args[2]
-    wait_msg = await message.reply("Fetching player data... Please wait...")
+    wait_msg = await message.reply("🔍 Fetching player data...")
 
-    url = f"https://fred-fire-info-gj.vercel.app/player-info?uid={uid}&region={region}"
+    url = f"https://freefireinfo.nepcoderapis.workers.dev/?uid={uid}&region={region}"
 
     try:
         async with aiohttp.ClientSession() as session:
             async with session.get(url) as res:
+                if res.status != 200:
+                    raise Exception(f"HTTP Error: {res.status}")
                 data = await res.json()
 
-        b = data.get("basicInfo", {})
-        c = data.get("clanBasicInfo", {})
-        p = data.get("petInfo", {})
-        s = data.get("socialInfo", {})
+        acc = data.get("AccountInfo", {})
+        guild = data.get("GuildInfo", {})
+        pet = data.get("petInfo", {})
+        social = data.get("socialinfo", {})
 
         text = f"""{user_tag}
-<b>👤 Player Profile</b>
-<b>Name:</b> {b.get("nickname", "N/A")}
-<b>UID:</b> {b.get("accountId", "N/A")}
-<b>Region:</b> {b.get("region", "N/A")}
-<b>Level:</b> {b.get("level", "N/A")}
-<b>EXP:</b> {b.get("exp", 0):,}
-<b>Likes:</b> {b.get("liked", "N/A")}
-<b>Created At:</b> {unix_to_readable(b.get("createAt", 0))}
-<b>Last Login:</b> {unix_to_readable(b.get("lastLoginAt", 0))}
+<b>👤 Player Info</b>
+<b>Name:</b> {acc.get("AccountName", "N/A")}
+<b>UID:</b> {uid}
+<b>Region:</b> {acc.get("AccountRegion", "N/A")}
+<b>Level:</b> {acc.get("AccountLevel", "N/A")}
+<b>EXP:</b> {acc.get("AccountEXP", 0):,}
+<b>Likes:</b> {acc.get("AccountLikes", 0)}
+<b>Created At:</b> {unix_to_readable(acc.get("AccountCreateTime", 0))}
+<b>Last Login:</b> {unix_to_readable(acc.get("AccountLastLogin", 0))}
 
-<b>🔥 Elite & Stats</b>
-<b>Elite Pass:</b> {"Yes" if b.get("hasElitePass") else "No"}
-<b>Badges:</b> {b.get("badgeCnt", 0)}
+<b>🔥 Rank & Stats</b>
+<b>BR Rank:</b> {acc.get("BrRankPoint", "N/A")}
+<b>CS Rank:</b> {acc.get("CsRankPoint", "N/A")}
+<b>Badges:</b> {acc.get("AccountBPBadges", 0)}
+<b>Elite Pass:</b> {"Yes" if acc.get("DiamondCost", 0) > 0 else "No"}
 
 <b>🏳️ Guild Info</b>
-<b>Name:</b> {c.get("clanName", "N/A")}
-<b>Leader ID:</b> {c.get("captainId", "N/A")}
-<b>Members:</b> {c.get("memberNum", 0)} / {c.get("capacity", 0)}
-<b>Level:</b> {c.get("clanLevel", "N/A")}
+<b>Name:</b> {guild.get("GuildName", "N/A")}
+<b>Owner:</b> {guild.get("GuildOwner", "N/A")}
+<b>Members:</b> {guild.get("GuildMember", 0)} / {guild.get("GuildCapacity", 0)}
+<b>Level:</b> {guild.get("GuildLevel", "N/A")}
 
 <b>🐾 Pet Info</b>
-<b>Name:</b> {p.get("name", "N/A")}
-<b>Level:</b> {p.get("level", "N/A")}
-<b>Skin ID:</b> {p.get("skinId", "N/A")}
-<b>Skill ID:</b> {p.get("selectedSkillId", "N/A")}
+<b>ID:</b> {pet.get("id", "N/A")}
+<b>Level:</b> {pet.get("level", "N/A")}
+<b>Skin:</b> {pet.get("skinId", "N/A")}
+<b>Skill:</b> {pet.get("selectedSkillId", "N/A")}
 
-<b>🌐 Social Info</b>
-<b>Gender:</b> {s.get("gender", "N/A").replace("Gender_", "")}
-<b>Language:</b> {s.get("language", "N/A").replace("Language_", "")}
-<b>Time Online:</b> {s.get("timeOnline", "N/A").replace("TimeOnline_", "")}
-<b>Time Active:</b> {s.get("timeActive", "N/A").replace("TimeActive_", "")}
-<b>Signature:</b> {s.get("signature", "N/A").replace("[b][c][i]", "").strip()}
+<b>🌐 Social</b>
+<b>Gender:</b> {social.get("Gender", "N/A").replace("Gender_", "")}
+<b>Language:</b> {social.get("AccountLanguage", "N/A").replace("Language_", "")}
+<b>Mode:</b> {social.get("ModePreference", "N/A").replace("ModePrefer_", "")}
+<b>Signature:</b> {social.get("AccountSignature", "N/A").replace("[B][C]", "").strip()}
 """
         await wait_msg.edit_text(text)
 
