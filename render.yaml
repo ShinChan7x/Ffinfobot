@@ -6,6 +6,6 @@ services:
     startCommand: "python ff_uid_check_bot.py"
     envVars:
       - key: TELEGRAM_BOT_TOKEN
-        value: 8143312411:AAE-dQ2l5rw5NfUnI9_fMGIc0X_FXl9CgX0
+        value: 7592894356:AAHMklcnPTSOz6Ay0l7Gps4W-yIfou_EafU
       - key: ALLOWED_GROUP_ID
-        value: -1002775163474
+        value: -1002881479162
